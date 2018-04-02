@@ -88,6 +88,12 @@ def pytest_addoption(parser):
         '--tr-testrun-milestone-id',
         action='store',
         help='Identifier for milestone, that appears in TestRail. If provided, testrun will be associated with milestone'
+    ),
+    group.addoption(
+        '--tr-close-run',
+        action='store_true',
+        required=False,
+        help='Close test run after all results have been added, default is False'
     )
 
 
