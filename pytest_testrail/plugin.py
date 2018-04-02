@@ -300,7 +300,6 @@ class PyTestRailPlugin(object):
             self.testrun_id = response['id']
             print('[{}] Testrun closed with ID={}'.format(TESTRAIL_PREFIX, self.testrun_id))
 
-
     def is_testrun_available(self):
         """
         Ask if testrun is available in TestRail.
