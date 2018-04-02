@@ -22,6 +22,7 @@ ADD_TESTRUN_URL = 'add_run/{}'
 GET_TESTRUN_URL = 'get_run/{}'
 GET_TESTPLAN_URL = 'get_plan/{}'
 GET_MILESTONE_URL = 'get_milestone/{}'
+CLOSE_TESTRUN_URL = 'close_run/{}'
 
 COMMENT_SIZE_LIMIT = 4000
 
@@ -106,7 +107,7 @@ def get_testrail_keys(items):
 class PyTestRailPlugin(object):
     def __init__(
             self, client, assign_user_id, project_id, suite_id, cert_check, tr_name, run_id=0, plan_id=0, version='',
-            add_skips=True, milestone_id=0
+            add_skips=True, milestone_id=0, close_run=True
     ):
         self.assign_user_id = assign_user_id
         self.cert_check = cert_check
@@ -120,6 +121,7 @@ class PyTestRailPlugin(object):
         self.version = version
         self.add_skips = add_skips
         self.milestone_id = milestone_id
+        self.close_run = close_run
 
     # pytest hooks
 
@@ -279,6 +281,21 @@ class PyTestRailPlugin(object):
             print('[{}] New testrun created with name "{}" and ID={}'.format(TESTRAIL_PREFIX,
                                                                               testrun_name,
                                                                               self.testrun_id))
+
+    def close_test_run(self):
+        response = self.client.send_post(
+            CLOSE_TESTRUN_URL.format(self.testrun_id),
+            data=None,
+            cert_check=self.cert_check
+        )
+
+        error = self.client.get_error(response)
+        if error:
+            print('[{}] Failed to close testrun: "{}"'.format(TESTRAIL_PREFIX, error))
+        else:
+            self.testrun_id = response['id']
+            print('[{}] Testrun closed with ID={}'.format(TESTRAIL_PREFIX, self.testrun_id))
+
 
     def is_testrun_available(self):
         """
