@@ -253,7 +253,8 @@ class PyTestRailPlugin(object):
                                                                                                     error))
 
     def create_test_run(
-            self, assign_user_id, project_id, suite_id, testrun_name, tr_keys, milestone_id):
+            self, assign_user_id, project_id, suite_id, testrun_name, tr_keys, milestone_id
+    ):
         """
         Create testrun with ids collected from markers.
 
