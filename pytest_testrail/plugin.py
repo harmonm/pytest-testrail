@@ -189,6 +189,9 @@ class PyTestRailPlugin(object):
                     self.add_results(testrun_id)
             else:
                 print('[{}] No data published'.format(TESTRAIL_PREFIX))
+
+            if self.close_run:
+                self.close_test_run()
         print('[{}] End publishing'.format(TESTRAIL_PREFIX))
 
     # plugin
