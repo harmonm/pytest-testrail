@@ -82,7 +82,7 @@ def pytest_addoption(parser):
         '--tr-add-skips',
         action='store_true',
         required=False,
-        help='Add skipped tests to test run, default is True'
+        help='Add skipped tests to test run, default is False'
     )
     group.addoption(
         '--tr-testrun-milestone-id',
@@ -91,9 +91,9 @@ def pytest_addoption(parser):
     ),
     group.addoption(
         '--tr-close-run',
-        action='store_true',
+        action='store_false',
         required=False,
-        help='Close test run after all results have been added, default is False'
+        help='Close test run after all results have been added, default is True'
     )
 
 
