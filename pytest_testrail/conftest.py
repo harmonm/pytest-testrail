@@ -117,7 +117,8 @@ def pytest_configure(config):
                 run_id=config.getoption('--tr-run-id'),
                 plan_id=config.getoption('--tr-plan-id'),
                 version=config.getoption('--tr-version'),
-                add_skips=config.getoption('--tr-add-skips', 'add_skips', 'TESTRUN')
+                add_skips=config.getoption('--tr-add-skips', 'add_skips', 'TESTRUN'),
+                close_run=config.getoption('--tr-close-run', 'close_run', 'TESTRUN')
             ),
             # Name of plugin instance (allow to be used by other plugins)
             name="pytest-testrail-instance"
