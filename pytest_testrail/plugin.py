@@ -107,7 +107,7 @@ def get_testrail_keys(items):
 class PyTestRailPlugin(object):
     def __init__(
             self, client, assign_user_id, project_id, suite_id, cert_check, tr_name, run_id=0, plan_id=0, version='',
-            add_skips=True, milestone_id=0, close_run=True
+            add_skips=True, milestone_id=0, close_run=True, add_passes=True
     ):
         self.assign_user_id = assign_user_id
         self.cert_check = cert_check
@@ -122,6 +122,7 @@ class PyTestRailPlugin(object):
         self.add_skips = add_skips
         self.milestone_id = milestone_id
         self.close_run = close_run
+        self.add_passes = add_passes
 
     # pytest hooks
 
@@ -242,6 +243,8 @@ class PyTestRailPlugin(object):
                 data['elapsed'] = str(duration) + 's'
 
             if self.add_skips is False and data['status_id'] == PYTEST_TO_TESTRAIL_STATUS['skipped']:
+                continue
+            elif self.add_passes is False and data["status_id"] == PYTEST_TO_TESTRAIL_STATUS["passed"]:
                 continue
             else:
                 response = self.client.send_post(
