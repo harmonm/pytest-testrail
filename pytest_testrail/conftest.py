@@ -98,7 +98,8 @@ def pytest_addoption(parser):
         help='Skip test cases that are not present in testrun'),
     group.addoption(
         "--tr-add-passes",
-        action="store_true",
+        action="store",
+        default=None,
         required=False,
         help="Add passing results, default is False"
     ),
@@ -133,7 +134,7 @@ def pytest_configure(config):
                 close_on_complete=config.getoption('--tr-close-on-complete'),
                 publish_blocked=config.getoption('--tr-dont-publish-blocked'),
                 skip_missing=config.getoption('--tr-skip-missing'),
-                add_passes=config_manager.getoption("tr-add-passes", "add_passes", "TESTRUN")
+                add_passes=config_manager.getoption("tr-add-passes", "add_passes", "TESTRUN", is_bool=True, default=None)
             ),
             # Name of plugin instance (allow to be used by other plugins)
             name="pytest-testrail-instance"
