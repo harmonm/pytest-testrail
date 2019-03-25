@@ -48,6 +48,11 @@ def pytest_addoption(parser):
         action='store',
         help='ID of the test suite containing the test cases (config file: suite_id in TESTRUN section)')
     group.addoption(
+        '--tr-testrun-suite-include-all',
+        action='store_true',
+        default=None,
+        help='Include all test cases in specified test suite when creating test run (config file: include_all in TESTRUN section)')
+    group.addoption(
         '--tr-testrun-name',
         action='store',
         default=None,
@@ -57,44 +62,40 @@ def pytest_addoption(parser):
         action='store',
         default=0,
         required=False,
-        help='Identifier of testrun, that appears in TestRail. If provided, option "--tr-testrun-name" will be ignored'
-    )
+        help='Identifier of testrun, that appears in TestRail. If provided, option "--tr-testrun-name" will be ignored')
     group.addoption(
         '--tr-plan-id',
         action='store',
         default=0,
         required=False,
-        help='Identifier of testplan, that appears in TestRail. If provided, option "--tr-testrun-name" will be ignored'
-    )
+        help='Identifier of testplan, that appears in TestRail. If provided, option "--tr-testrun-name" will be ignored')
     group.addoption(
         '--tr-version',
         action='store',
         default='',
         required=False,
-        help='Indicate a version in Test Case result.'
-    )
+        help='Indicate a version in Test Case result')
     group.addoption(
         '--tr-no-ssl-cert-check',
         action='store_false',
-        help='Do not check for valid SSL certificate on TestRail host'
-    )
+        default=None,
+        help='Do not check for valid SSL certificate on TestRail host')
     group.addoption(
-        '--tr-add-skips',
+        '--tr-close-on-complete',
         action='store_true',
+        default=False,
         required=False,
-        help='Add skipped tests to test run, default is False'
-    )
+        help='Close a test run on completion')
     group.addoption(
-        '--tr-testrun-milestone-id',
-        action='store',
-        help='Identifier for milestone, that appears in TestRail. If provided, testrun will be associated with milestone'
-    ),
-    group.addoption(
-        '--tr-close-run',
+        '--tr-dont-publish-blocked',
         action='store_false',
         required=False,
-        help='Close test run after all results have been added, default is True'
-    ),
+        help='Determine if results of "blocked" testcases (in TestRail) are published or not')
+    group.addoption(
+        '--tr-skip-missing',
+        action='store_true',
+        required=False,
+        help='Skip test cases that are not present in testrun'),
     group.addoption(
         "--tr-add-passes",
         action="store_true",
@@ -117,14 +118,16 @@ def pytest_configure(config):
                 assign_user_id=config_manager.getoption('tr-testrun-assignedto-id', 'assignedto_id', 'TESTRUN'),
                 project_id=config_manager.getoption('tr-testrun-project-id', 'project_id', 'TESTRUN'),
                 suite_id=config_manager.getoption('tr-testrun-suite-id', 'suite_id', 'TESTRUN'),
-                cert_check=config_manager.getoption('tr-no-ssl-cert-check', 'no_ssl_cert_check', 'API', default=True),
+                include_all=config_manager.getoption('tr-testrun-suite-include-all', 'include_all', 'TESTRUN', is_bool=True, default=False),
+                cert_check=config_manager.getoption('tr-no-ssl-cert-check', 'no_ssl_cert_check', 'API', is_bool=True, default=True),
                 tr_name=config_manager.getoption('tr-testrun-name', 'name', 'TESTRUN'),
                 milestone_id=config_manager.getoption('tr-testrun-milestone-id', 'milestone_id', 'TESTRUN'),
                 run_id=config.getoption('--tr-run-id'),
                 plan_id=config.getoption('--tr-plan-id'),
                 version=config.getoption('--tr-version'),
-                add_skips=config.getoption('--tr-add-skips', 'add_skips', 'TESTRUN'),
-                close_run=config.getoption('--tr-close-run', 'close_run', 'TESTRUN'),
+                close_on_complete=config.getoption('--tr-close-on-complete'),
+                publish_blocked=config.getoption('--tr-dont-publish-blocked'),
+                skip_missing=config.getoption('--tr-skip-missing'),
                 add_passes=config_manager.getoption("tr-add-passes", "add_passes", "TESTRUN")
             ),
             # Name of plugin instance (allow to be used by other plugins)
@@ -150,10 +153,21 @@ class ConfigManager(object):
 
         self.config = config
 
-    def getoption(self, flag, cfg_name, section=None, default=None):
+    def getoption(self, flag, cfg_name, section=None, is_bool=False, default=None):
+        # priority: cli > config file > default
+
+        # 1. return cli option (if set)
         value = self.config.getoption('--{}'.format(flag))
         if value is not None:
             return value
+
+        # 2. return default if not config file path is specified
         if section is None or self.cfg_file is None:
-            return None
-        return self.cfg_file.get(section, cfg_name)
+            return default
+
+        if self.cfg_file.has_option(section, cfg_name):
+            # 3. return config file value
+            return self.cfg_file.getboolean(section, cfg_name) if is_bool else self.cfg_file.get(section, cfg_name)
+        else:
+            # 4. if entry not found in config file
+            return default
