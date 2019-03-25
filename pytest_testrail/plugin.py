@@ -119,7 +119,7 @@ def get_testrail_keys(items):
 
 class PyTestRailPlugin(object):
     def __init__(self, client, assign_user_id, project_id, suite_id, include_all, cert_check, tr_name, run_id=0,
-                 plan_id=0, version='', milestone_id=0, close_on_complete=False, publish_blocked=True, skip_missing=False):
+                 plan_id=0, version='', milestone_id=0, close_on_complete=False, publish_blocked=True, skip_missing=False, add_passes=True):
         self.assign_user_id = assign_user_id
         self.cert_check = cert_check
         self.client = client
@@ -135,6 +135,7 @@ class PyTestRailPlugin(object):
         self.publish_blocked = publish_blocked
         self.skip_missing = skip_missing
         self.milestone_id = milestone_id
+        self.add_passes = add_passes
 
     # pytest hooks
 
@@ -273,6 +274,8 @@ class PyTestRailPlugin(object):
         # Publish results
         data = {'results': []}
         for result in self.results:
+            if self.add_passes is False and result["status_id"] == PYTEST_TO_TESTRAIL_STATUS["passed"]:
+                continue
             entry = {'status_id': result['status_id'], 'case_id': result['case_id']}
             if self.version:
                 entry['version'] = self.version

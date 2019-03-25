@@ -101,6 +101,11 @@ def pytest_addoption(parser):
         action="store_true",
         required=False,
         help="Add passing results, default is False"
+    ),
+    group.addoption(
+        '--tr-testrun-milestone-id',
+        action='store',
+        help='Identifier for milestone, that appears in TestRail. If provided, testrun will be associated with milestone'
     )
 
 
